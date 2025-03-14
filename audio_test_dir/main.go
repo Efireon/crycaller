@@ -13,21 +13,24 @@ import (
 	"github.com/mattn/go-tty"
 )
 
+// Refresh interval for the UI.
+const refreshInterval = 500 * time.Millisecond
+
 // Parameters for speaker-test.
 var speakerTestArgs = []string{"-t", "wav", "-c", "2", "-l", "1"}
 
 // DeviceTest holds information about a device test.
 type DeviceTest struct {
 	Name  string // Device name.
-	Sound string // Test result, e.g., "Passed", "Failed", or "Error".
+	Sound string // Test result: "Passed", "Failed", "Error", or "Skipped".
 }
 
 // currentPrompt is the current prompt message displayed at the bottom.
 var currentPrompt string
 
-// refreshUI updates the screen every 250ms, displaying the test table and the current prompt.
+// refreshUI updates the screen every refreshInterval, displaying the test table and the current prompt.
 func refreshUI(tests []DeviceTest, stop <-chan struct{}) {
-	ticker := time.NewTicker(250 * time.Millisecond)
+	ticker := time.NewTicker(refreshInterval)
 	defer ticker.Stop()
 	for {
 		select {
@@ -198,10 +201,13 @@ func main() {
 	stopUI := make(chan struct{})
 	go refreshUI(tests, stopUI)
 
-	// Test each device sequentially.
+	// Test devices sequentially.
+	// As soon as a device is confirmed (Y pressed), further testing stops.
+	var successful bool
+	var passedIndex int = -1
 	for i, d := range devs {
 		tests[i].Sound = "Testing"
-		currentPrompt = fmt.Sprintf("Device '%s': Testing both speakers simultaneously.", d)
+		currentPrompt = fmt.Sprintf("Device '%s': Testing both speakers simultaneously.\nPress Y if sound is heard, or N if not.", d)
 		res, err := testSimultaneous(d)
 		if err != nil {
 			tests[i].Sound = "Error"
@@ -210,15 +216,33 @@ func main() {
 		}
 		if res {
 			tests[i].Sound = "Passed"
+			successful = true
+			passedIndex = i
+			// Stop testing further devices.
+			break
 		} else {
 			tests[i].Sound = "Failed"
 		}
 	}
 
+	// If testing was stopped before the end of the list, mark remaining devices as "Skipped".
+	if passedIndex >= 0 && passedIndex < len(tests)-1 {
+		for i := passedIndex + 1; i < len(tests); i++ {
+			tests[i].Sound = "Skipped"
+		}
+	}
+
 	// Stop UI refresh.
 	close(stopUI)
-	// Final UI render.
-	printUI(tests, "Testing completed. Press any key to exit.")
-	// Wait for any key press to exit.
-	_, _, _ = readSingleKey()
+
+	// Final UI render and program termination.
+	if successful {
+		printUI(tests, "Sound confirmed! Test completed. Exiting immediately.")
+		// Exit immediately without waiting for further input.
+		os.Exit(0)
+	} else {
+		printUI(tests, "Sound not confirmed. Test completed. Press any key to exit.")
+		// Wait for any key press to exit.
+		_, _, _ = readSingleKey()
+	}
 }

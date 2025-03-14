@@ -10,7 +10,7 @@ usage() {
     echo "                      vendor  - exclude the Vendor field from the configuration"
     echo "                      product - exclude the Product field from the configuration"
     echo "                      port    - do not check the port where the interface is located"
-    echo "                      ping    - ignore the ping result during verification"
+    echo "                      ping    - do not ping the network (ping result will be set to \"*\")"
     echo "                      Options can be combined with commas, for example: vendor,port"
     echo ""
     echo "Examples:"
@@ -33,7 +33,7 @@ check_dependencies() {
 
 # Function to create the configuration
 create_config() {
-    OUTPUT_FILE="$CONFIG_FILE"  # Use the path to the configuration file specified by -c or default
+    OUTPUT_FILE="$CONFIG_FILE"  # Use the config file specified by -c or default
 
     echo "Creating configuration file '$OUTPUT_FILE'..."
 
@@ -41,13 +41,6 @@ create_config() {
     INTERFACES_JSON=$(sudo lshw -class network -json)
     if [[ $? -ne 0 || -z "$INTERFACES_JSON" ]]; then
         echo "Error executing lshw. Ensure you have the necessary permissions."
-        exit 1
-    fi
-
-    # Get the router IP (default gateway)
-    ROUTER_IP=$(ip route | awk '/default/ {print $3}' | head -n1)
-    if [[ -z "$ROUTER_IP" ]]; then
-        echo "Failed to determine the router IP (default gateway)."
         exit 1
     fi
 
@@ -78,6 +71,15 @@ create_config() {
         esac
     done
 
+    # Only get the default gateway if ping testing is not skipped
+    if ! $SKIP_PING; then
+        ROUTER_IP=$(ip route | awk '/default/ {print $3}' | head -n1)
+        if [[ -z "$ROUTER_IP" ]]; then
+            echo "Failed to determine the router IP (default gateway)."
+            exit 1
+        fi
+    fi
+
     # Collect interface information
     INTERFACES_ARRAY=$(echo "$INTERFACES_JSON" | jq -c '.[]' | while read -r iface; do
         NAME=$(echo "$iface" | jq -r '.logicalname // "Unknown"')
@@ -86,18 +88,21 @@ create_config() {
         SPEED=$(ethtool "$NAME" 2>/dev/null | awk '/Speed:/ {print $2}' || echo "Unknown")
         PORT=$(echo "$iface" | jq -r '.businfo // "Unknown"')
 
-        # Check router availability
-        if ping -c 1 -W 1 "$ROUTER_IP" > /dev/null 2>&1; then
-            PING_RESULT="Success"
+        # Determine the ping result only if not skipped
+        if ! $SKIP_PING; then
+            if ping -c 1 -W 1 "$ROUTER_IP" > /dev/null 2>&1; then
+                PING_RESULT="Success"
+            else
+                PING_RESULT="Fail"
+            fi
         else
-            PING_RESULT="Fail"
+            PING_RESULT="*"
         fi
 
         # Apply -s options
         [[ $SKIP_VENDOR == true ]] && VENDOR="*"
         [[ $SKIP_PRODUCT == true ]] && PRODUCT="*"
         [[ $SKIP_PORT == true ]] && PORT="*"
-        [[ $SKIP_PING == true ]] && PING_RESULT="*"
 
         # Create JSON object for the interface
         jq -n \
@@ -118,7 +123,7 @@ create_config() {
     # Get the total number of interfaces
     TOTAL_COUNT=$(echo "$INTERFACES_ARRAY" | jq 'length')
 
-    # Create the final JSON
+    # Create the final JSON object with the count and interfaces
     FINAL_JSON=$(jq -n \
         --argjson count "$TOTAL_COUNT" \
         --argjson interfaces "$INTERFACES_ARRAY" \
@@ -134,7 +139,7 @@ create_config() {
         exit 1
     fi
 
-    # Write to file
+    # Write JSON to file
     echo "$FINAL_JSON" > "$OUTPUT_FILE"
 
     echo "Configuration successfully created in file '$OUTPUT_FILE'."
@@ -159,10 +164,10 @@ check_config() {
         exit 1
     fi
 
-    # Extract the count from the configuration
+    # Extract the expected count from the configuration
     CONFIG_COUNT=$(echo "$CONFIG_JSON" | jq '.count')
 
-    # If -i is specified, override the count from the configuration
+    # If -i is specified, override the configuration count
     if [[ $EXPECTED_COUNT -gt 0 ]]; then
         EXPECTED_TOTAL_COUNT=$EXPECTED_COUNT
     else
@@ -217,34 +222,28 @@ check_config() {
             fi
 
             # Compare fields
-            # Compare Vendor
             if [[ "$CONFIG_VENDOR" != "*" && "$CONFIG_VENDOR" != "$CURRENT_VENDOR" ]]; then
                 continue
             fi
 
-            # Compare Product
             if [[ "$CONFIG_PRODUCT" != "*" && "$CONFIG_PRODUCT" != "$CURRENT_PRODUCT" ]]; then
                 continue
             fi
 
-            # Compare Speed
             if [[ "$CONFIG_SPEED" != "*" && "$CONFIG_SPEED" != "$CURRENT_SPEED" ]]; then
                 continue
             fi
 
-            # Compare Port
             if [[ "$CONFIG_PORT" != "*" && "$CONFIG_PORT" != "$CURRENT_PORT" ]]; then
                 continue
             fi
 
-            # Compare Ping
             if [[ "$CONFIG_PING" != "*" ]]; then
                 if [[ "$CONFIG_PING" != "$CURRENT_PING" ]]; then
                     continue
                 fi
             fi
 
-            # If all checks pass
             MATCH_FOUND=true
             break
         done

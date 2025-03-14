@@ -26,12 +26,12 @@ func init() {
 	}
 }
 
-// Config хранит группы USB-портов, приоритетные группы для тестирования и требуемое число тестов для каждой группы.
+// Config хранит группы USB-портов, выбранные группы для тестирования и требуемое число тестов для каждой группы.
 type Config struct {
 	Motherboard string              `json:"motherboard"`
 	Ports       map[string][]string `json:"ports"`       // имя группы -> []USB портов
-	Selected    []string            `json:"selected"`    // приоритетные группы
-	TestCounts  map[string]int      `json:"test_counts"` // требуемое число тестов для каждой группы (значение статично)
+	Selected    []string            `json:"selected"`    // выбранные группы
+	TestCounts  map[string]int      `json:"test_counts"` // требуемое число тестов для каждой группы (статично)
 }
 
 var (
@@ -39,12 +39,28 @@ var (
 	quickCheck  = flag.Bool("quick", false, "Immediately enter auto check mode")
 	checkSelect = flag.Bool("check-select", false, "Select groups for checking before auto-check mode")
 	retestCount = flag.Int("retest", 0, "Number of retest cycles in check mode")
-	// Новый флаг -T: если задан, программа сразу переходит в режим Auto Test Mode.
-	testMode = flag.Bool("T", false, "Immediately enter Auto Test mode")
+	testMode    = flag.Bool("T", false, "Immediately enter Auto Test mode")
+	displayMode = flag.Bool("d", false, "Display currently connected USB devices (non-curses) and exit")
 )
+
+// USBDevice описывает устройство, полученное из lsblk.
+type USBDevice struct {
+	Name  string `json:"name"`
+	Label string `json:"label"`
+	Model string `json:"model"`
+	Tran  string `json:"tran"`
+}
 
 func main() {
 	flag.Parse()
+
+	// Если задан режим отображения USB (-d), то не запускаем curses,
+	// а выводим список устройств в стандартный вывод.
+	if *displayMode {
+		displayUSBModeStd()
+		os.Exit(0)
+	}
+
 	config := loadConfig()
 
 	stdscr, err := gc.Init()
@@ -54,6 +70,7 @@ func main() {
 	defer gc.End()
 	stdscr.Keypad(true)
 	gc.Echo(false)
+	gc.Cursor(0) // скрыть курсор
 
 	// Обработка Ctrl+C.
 	sigChan := make(chan os.Signal, 1)
@@ -64,9 +81,8 @@ func main() {
 		os.Exit(0)
 	}()
 
-	// Если задан флаг -T, сразу переходим в режим Auto Test Mode.
+	// Если задан флаг -T, сразу переходим в режим Auto Test.
 	if *testMode {
-		// Если задано число повторов, запускаем retestMode, иначе autoCheckMode.
 		if *retestCount > 0 {
 			retestMode(stdscr, config, config.Selected)
 		} else {
@@ -75,7 +91,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	// Если указан quick-режим, переходим в режим проверки.
+	// Если указан quick-режим.
 	if *quickCheck {
 		var selected []string
 		if len(config.Selected) > 0 {
@@ -91,7 +107,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	// Главное меню.
+	// Главное меню (curses-режим).
 	for {
 		showMainMenu(stdscr)
 		gc.FlushInput()
@@ -122,13 +138,13 @@ func main() {
 				config.Selected = selGroups
 				config.TestCounts = testCounts
 				saveConfig(config)
-				showMessage(stdscr, "Priority groups and test counts saved. Press any key to return to main menu.")
+				showMessage(stdscr, "Priority groups and test counts saved.")
 			} else {
-				showMessage(stdscr, "No changes made. Press any key to return to main menu.")
+				showMessage(stdscr, "No changes made.")
 			}
 			stdscr.GetChar()
-		case 'q', 'Q':
-			showMessage(stdscr, "Exiting without saving. Press any key to exit.")
+		case 'q', 'Q', 27:
+			showMessage(stdscr, "Exiting without saving.")
 			stdscr.GetChar()
 			return
 		default:
@@ -138,8 +154,69 @@ func main() {
 	}
 }
 
+// displayUSBModeStd реализует режим -d без использования curses.
+// Он периодически (раз в секунду) опрашивает USB-устройства и сравнивает с предыдущим состоянием,
+// выводя сообщения о подключении и отключении устройств.
+func displayUSBModeStd() {
+	prev := make(map[string]USBDevice)
+	for {
+		currDevices := getUSBDevicesInfo()
+		curr := make(map[string]USBDevice)
+		for _, dev := range currDevices {
+			curr[dev.Name] = dev
+		}
+		// Определяем новые устройства.
+		for name, dev := range curr {
+			if _, ok := prev[name]; !ok {
+				fmt.Printf("USB connected: /dev/%s - Label: %s, Disk: %s\n", dev.Name, dev.Label, dev.Model)
+			}
+		}
+		// Определяем отключенные устройства.
+		for name, dev := range prev {
+			if _, ok := curr[name]; !ok {
+				fmt.Printf("USB disconnected: /dev/%s - Label: %s, Disk: %s\n", dev.Name, dev.Label, dev.Model)
+			}
+		}
+		prev = curr
+		time.Sleep(1 * time.Second)
+	}
+}
+
+// displayUSBModeStd вызывается, если задан флаг -d.
+// Он не использует curses.
+func displayUSBModeStdWrapper() {
+	displayUSBModeStd()
+}
+
+// getUSBDevicesInfo получает информацию о USB-устройствах через lsblk.
+// Если поле Label пустое, подставляется "NONAME".
+func getUSBDevicesInfo() []USBDevice {
+	cmd := exec.Command("lsblk", "-o", "NAME,LABEL,MODEL,TRAN", "--json")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil
+	}
+	var result struct {
+		Blockdevices []USBDevice `json:"blockdevices"`
+	}
+	if err := json.Unmarshal(output, &result); err != nil {
+		return nil
+	}
+	var devices []USBDevice
+	for _, dev := range result.Blockdevices {
+		if strings.ToLower(dev.Tran) == "usb" {
+			if strings.TrimSpace(dev.Label) == "" {
+				dev.Label = "NONAME"
+			}
+			devices = append(devices, dev)
+		}
+	}
+	return devices
+}
+
+// showMainMenu выводит главное меню (curses-режим).
 func showMainMenu(win *gc.Window) {
-	win.Clear()
+	win.Erase()
 	win.MovePrint(1, 2, "==== Main Menu ====")
 	win.MovePrint(3, 4, "[1] Port learning mode")
 	win.MovePrint(4, 4, "[2] Edit USB groups (interactive)")
@@ -151,7 +228,6 @@ func showMainMenu(win *gc.Window) {
 	win.Refresh()
 }
 
-//
 // Port Learning Mode: формирует группы USB-портов.
 func portLearningMode(win *gc.Window, config *Config) {
 	mobo := getMotherboardID()
@@ -174,7 +250,7 @@ func portLearningMode(win *gc.Window, config *Config) {
 			lastUpdate = time.Now()
 		}
 
-		win.Clear()
+		win.Erase()
 		win.MovePrint(0, 2, "Port Learning Mode")
 		win.MovePrint(1, 2, "Motherboard: "+mobo)
 		win.MovePrint(3, 2, "Press [N] to save current group and start a new group.")
@@ -190,38 +266,36 @@ func portLearningMode(win *gc.Window, config *Config) {
 		win.Refresh()
 
 		ch := win.GetChar()
-		if ch != -1 {
-			switch ch {
-			case 'n', 'N':
-				if len(currentGroup) > 0 {
-					groupName := fmt.Sprintf("usb%d", groupNumber)
-					config.Ports[groupName] = mapKeysToSlice(currentGroup)
-					groupNumber++
-					currentGroup = make(map[string]bool)
-					showMessage(win, fmt.Sprintf("Saved group %s. Press any key to continue.", groupName))
-					win.GetChar()
-					gc.FlushInput()
-				} else {
-					showMessage(win, "Current group is empty. Press any key to continue.")
-					win.GetChar()
-					gc.FlushInput()
-				}
-			case 's', 'S':
-				if len(currentGroup) > 0 {
-					groupName := fmt.Sprintf("usb%d", groupNumber)
-					config.Ports[groupName] = mapKeysToSlice(currentGroup)
-				}
-				saveConfig(config)
-				showMessage(win, "Profile saved. Press any key to return to main menu.")
-				win.GetChar()
+		switch ch {
+		case 'n', 'N':
+			if len(currentGroup) > 0 {
+				groupName := fmt.Sprintf("usb%d", groupNumber)
+				config.Ports[groupName] = mapKeysToSlice(currentGroup)
+				groupNumber++
+				currentGroup = make(map[string]bool)
+				showMessage(win, fmt.Sprintf("Saved group %s.", groupName))
+				time.Sleep(1 * time.Second)
 				gc.FlushInput()
-				return
-			case 'e', 'E':
-				showMessage(win, "Exiting without saving current group. Press any key to return.")
-				win.GetChar()
+			} else {
+				showMessage(win, "Current group is empty.")
+				time.Sleep(1 * time.Second)
 				gc.FlushInput()
-				return
 			}
+		case 's', 'S':
+			if len(currentGroup) > 0 {
+				groupName := fmt.Sprintf("usb%d", groupNumber)
+				config.Ports[groupName] = mapKeysToSlice(currentGroup)
+			}
+			saveConfig(config)
+			showMessage(win, "Profile saved.")
+			time.Sleep(1 * time.Second)
+			gc.FlushInput()
+			return
+		case 'e', 'E', 27:
+			showMessage(win, "Exiting without saving current group.")
+			time.Sleep(1 * time.Second)
+			gc.FlushInput()
+			return
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
@@ -235,12 +309,11 @@ func mapKeysToSlice(m map[string]bool) []string {
 	return s
 }
 
-//
-// Auto Check Mode (без повторного тестирования)
+// Auto Check Mode (без повторного тестирования).
 // Каждые 100 мс опрашиваются USB-устройства. Для каждой выбранной группы ведётся учёт повторений:
-// - Если устройство обнаружено, и ранее его не фиксировали, увеличиваем progress и устанавливаем state = true.
-// - Если устройство отсутствует, сбрасываем state.
-// Статус "[OK]" показывается только когда progress >= требуемому количеству тестов.
+// если устройство обнаружено и ранее не зафиксировано, progress увеличивается, затем state устанавливается в true;
+// при отсутствии устройства state сбрасывается.
+// Статус "[OK]" выставляется только когда progress >= требуемому числу тестов.
 func autoCheckMode(win *gc.Window, config *Config, selectedGroups []string) {
 	win.Timeout(100)
 	var groups []string
@@ -254,22 +327,21 @@ func autoCheckMode(win *gc.Window, config *Config, selectedGroups []string) {
 		}
 	}
 	if len(groups) == 0 {
-		showMessage(win, "No groups available for checking. Press any key to return.")
-		win.GetChar()
+		showMessage(win, "No groups available for checking.")
+		time.Sleep(1 * time.Second)
 		return
 	}
 
-	// Инициализируем счетчики повторений и состояние для каждой группы.
 	progress := make(map[string]int)
-	state := make(map[string]bool) // false - устройство не зафиксировано, true - устройство уже зафиксировано
+	state := make(map[string]bool)
 	for _, group := range groups {
 		progress[group] = 0
 		state[group] = false
 	}
 
 	for {
-		win.Clear()
-		win.MovePrint(0, 2, "Auto Check Mode - Press Q to exit")
+		win.Erase()
+		win.MovePrint(0, 2, "Auto Check Mode - Press Q or ESC to exit")
 		current := getCurrentPortIDs()
 		line := 2
 		allVerified := true
@@ -282,7 +354,6 @@ func autoCheckMode(win *gc.Window, config *Config, selectedGroups []string) {
 					break
 				}
 			}
-			// Если устройство обнаружено и ранее не зафиксировано, увеличиваем progress и ставим флаг.
 			if found && !state[group] {
 				progress[group]++
 				state[group] = true
@@ -304,27 +375,26 @@ func autoCheckMode(win *gc.Window, config *Config, selectedGroups []string) {
 		}
 		win.Refresh()
 		if allVerified {
-			showMessage(win, "All groups verified successfully. Press any key to exit.")
-			win.GetChar()
+			showMessage(win, "All groups verified successfully.")
+			time.Sleep(1 * time.Second)
 			return
 		}
 		ch := win.GetChar()
-		if ch == 'q' || ch == 'Q' {
+		if ch == 'q' || ch == 'Q' || ch == 27 {
 			break
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
-	showMessage(win, "Exiting check mode. Press any key to return to main menu.")
-	win.GetChar()
+	showMessage(win, "Exiting check mode.")
+	time.Sleep(1 * time.Second)
 }
 
-//
-// Retest Mode (Auto Test Mode)
+// Retest Mode (Auto Test Mode).
 // Для каждой выбранной группы используется статичное требуемое число тестов (например, 2).
 // Логика для каждой группы:
-//   - State 0: Ожидание вставки USB-носителя. При обнаружении увеличиваем progress и переключаем состояние на 1.
-//   - State 1: Ожидание удаления USB-носителя. При отсутствии переключаем состояние в 0.
-// Группа считается протестированной, если progress >= требуемому количеству тестов.
+// - State 0: ожидание вставки USB-носителя. При обнаружении увеличивается progress и state переключается в 1.
+// - State 1: ожидание удаления USB-носителя. При отсутствии переключается в 0.
+// Группа считается протестированной, если progress >= требуемому числу тестов.
 func retestMode(win *gc.Window, config *Config, selectedGroups []string) {
 	win.Timeout(100)
 	var groups []string
@@ -338,13 +408,11 @@ func retestMode(win *gc.Window, config *Config, selectedGroups []string) {
 		}
 	}
 	if len(groups) == 0 {
-		showMessage(win, "No groups available for testing. Press any key to return.")
-		win.GetChar()
+		showMessage(win, "No groups available for testing.")
+		time.Sleep(1 * time.Second)
 		return
 	}
 
-	// Инициализируем для каждой группы требуемое число тестов (из конфигурации, по умолчанию 1),
-	// а также счетчик прогресса и состояние: 0 - ожидание вставки, 1 - ожидание удаления.
 	required := make(map[string]int)
 	progress := make(map[string]int)
 	state := make(map[string]int) // 0 - ожидание вставки, 1 - ожидание удаления
@@ -359,8 +427,8 @@ func retestMode(win *gc.Window, config *Config, selectedGroups []string) {
 	}
 
 	for {
-		win.Clear()
-		win.MovePrint(0, 2, "Auto Test Mode (Retest) - Press Q to exit")
+		win.Erase()
+		win.MovePrint(0, 2, "Auto Test Mode (Retest) - Press Q or ESC to exit")
 		current := getCurrentPortIDs()
 		line := 2
 		allFinished := true
@@ -378,15 +446,14 @@ func retestMode(win *gc.Window, config *Config, selectedGroups []string) {
 		}
 		win.Refresh()
 		if allFinished {
-			showMessage(win, "All groups tested successfully. Press any key to exit.")
-			win.GetChar()
+			showMessage(win, "All groups tested successfully.")
+			time.Sleep(1 * time.Second)
 			return
 		}
 		ch := win.GetChar()
-		if ch == 'q' || ch == 'Q' {
+		if ch == 'q' || ch == 'Q' || ch == 27 {
 			break
 		}
-		// Обновляем состояние для каждой группы.
 		for _, group := range groups {
 			if progress[group] >= required[group] {
 				continue
@@ -408,12 +475,11 @@ func retestMode(win *gc.Window, config *Config, selectedGroups []string) {
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
-	showMessage(win, "Exiting test mode. Press any key to return to main menu.")
-	win.GetChar()
+	showMessage(win, "Exiting test mode.")
+	time.Sleep(1 * time.Second)
 }
 
-//
-// getDeviceNodeForPort возвращает первый device node, соответствующий заданному USB-порту.
+// getDeviceNodeForPort возвращает первый device node, соответствующий USB-порту.
 func getDeviceNodeForPort(portID string) string {
 	devices := detectUSBDevices()
 	for _, dev := range devices {
@@ -424,8 +490,7 @@ func getDeviceNodeForPort(portID string) string {
 	return ""
 }
 
-//
-// getMountPoint ищет точку монтирования для device node, анализируя /proc/mounts.
+// getMountPoint ищет точку монтирования для device node.
 func getMountPoint(dev string) string {
 	file, err := os.Open("/proc/mounts")
 	if err != nil {
@@ -443,14 +508,12 @@ func getMountPoint(dev string) string {
 	return ""
 }
 
-//
-// getSelectedGroups возвращает текущие выбранные группы и назначенные testCounts.
+// getSelectedGroups возвращает выбранные группы и их testCounts.
 func getSelectedGroups(win *gc.Window, config *Config) ([]string, map[string]int) {
 	return config.Selected, config.TestCounts
 }
 
-//
-// selectPriorityGroups позволяет пользователю выбрать группы для тестирования с назначением количества тестов.
+// selectPriorityGroups позволяет выбрать группы для тестирования с назначением testCount.
 func selectPriorityGroups(win *gc.Window, config *Config) ([]string, map[string]int) {
 	groups := []string{}
 	for group := range config.Ports {
@@ -465,9 +528,9 @@ func selectPriorityGroups(win *gc.Window, config *Config) ([]string, map[string]
 	current := 0
 
 	for {
-		win.Clear()
+		win.Erase()
 		win.MovePrint(1, 2, "Select groups for testing and set test count:")
-		win.MovePrint(2, 2, "TAB - toggle selection, Enter - set count, ESC - finish")
+		win.MovePrint(2, 2, "TAB - toggle, Enter - set count, ESC - finish")
 		for i, group := range groups {
 			marker := "[ ]"
 			countStr := ""
@@ -506,7 +569,7 @@ func selectPriorityGroups(win *gc.Window, config *Config) ([]string, map[string]
 			}
 		} else if ch == 10 || ch == 13 {
 			if selected[current] {
-				win.Clear()
+				win.Erase()
 				prompt := fmt.Sprintf("Enter number of tests for group %s: ", groups[current])
 				win.MovePrint(2, 2, prompt)
 				win.Refresh()
@@ -535,12 +598,11 @@ func selectPriorityGroups(win *gc.Window, config *Config) ([]string, map[string]
 	return selGroups, groupTestCounts
 }
 
-//
-// selectFromList отображает список для выбора с помощью стрелок.
+// selectFromList отображает список для выбора.
 func selectFromList(win *gc.Window, title string, items []string) int {
 	current := 0
 	for {
-		win.Clear()
+		win.Erase()
 		win.MovePrint(1, 2, title)
 		for i, item := range items {
 			if i == current {
@@ -551,7 +613,7 @@ func selectFromList(win *gc.Window, title string, items []string) int {
 				win.AttrOff(gc.A_REVERSE)
 			}
 		}
-		win.MovePrint(len(items)+5, 2, "Use arrow keys, Enter to select, Esc to cancel.")
+		win.MovePrint(len(items)+5, 2, "Use arrow keys, Enter to select, ESC to cancel.")
 		win.Refresh()
 		ch := win.GetChar()
 		if ch == gc.KEY_UP {
@@ -570,10 +632,9 @@ func selectFromList(win *gc.Window, title string, items []string) int {
 	}
 }
 
-//
-// editMode: выбор группы и редактирование записи.
+// editMode: редактирование группы.
 func editMode(win *gc.Window, config *Config) {
-	win.Clear()
+	win.Erase()
 	win.MovePrint(1, 2, "Edit USB Groups")
 	if len(config.Ports) == 0 {
 		win.MovePrint(3, 2, "No saved USB port groups. Press any key to return.")
@@ -600,7 +661,7 @@ func editMode(win *gc.Window, config *Config) {
 	if entryChoice < 0 {
 		return
 	}
-	win.Clear()
+	win.Erase()
 	win.MovePrint(1, 2, fmt.Sprintf("Editing entry %d in group %s", entryChoice+1, selectedGroup))
 	win.MovePrint(3, 2, "Current value: "+entries[entryChoice])
 	win.MovePrint(5, 2, "Enter new value (leave empty to cancel): ")
@@ -616,10 +677,9 @@ func editMode(win *gc.Window, config *Config) {
 	win.GetChar()
 }
 
-//
-// deleteMode: выбор группы и удаление записи.
+// deleteMode: удаление записи.
 func deleteMode(win *gc.Window, config *Config) {
-	win.Clear()
+	win.Erase()
 	win.MovePrint(1, 2, "Delete USB from Groups")
 	if len(config.Ports) == 0 {
 		win.MovePrint(3, 2, "No saved USB port groups. Press any key to return.")
@@ -656,16 +716,15 @@ func deleteMode(win *gc.Window, config *Config) {
 	win.GetChar()
 }
 
-//
-// showMessage отображает сообщение.
+// showMessage выводит сообщение и ждёт 1 секунду.
 func showMessage(win *gc.Window, msg string) {
-	win.Clear()
+	win.Erase()
 	win.MovePrint(2, 2, msg)
 	win.Refresh()
+	time.Sleep(1 * time.Second)
 }
 
-//
-// readLine считывает строку с ввода пользователя.
+// readLine считывает строку с ввода (ESC для выхода).
 func readLine(win *gc.Window, y, x int) string {
 	var result []rune
 	win.Move(y, x)
@@ -675,6 +734,9 @@ func readLine(win *gc.Window, y, x int) string {
 		if ch == -1 {
 			time.Sleep(50 * time.Millisecond)
 			continue
+		}
+		if ch == 27 { // ESC
+			break
 		}
 		if ch == '\n' || ch == '\r' {
 			break
@@ -696,8 +758,7 @@ func readLine(win *gc.Window, y, x int) string {
 	return string(result)
 }
 
-//
-// Utility функции для определения USB-устройств и работы с конфигурационным файлом.
+// getMotherboardID возвращает идентификатор материнской платы.
 func getMotherboardID() string {
 	cmd := exec.Command("dmidecode", "-s", "baseboard-product-name")
 	output, err := cmd.CombinedOutput()
@@ -707,6 +768,7 @@ func getMotherboardID() string {
 	return strings.TrimSpace(string(output))
 }
 
+// detectUSBDevices возвращает список USB-устройств (например, "/dev/sdb") по lsblk.
 func detectUSBDevices() []string {
 	cmd := exec.Command("lsblk", "-o", "NAME,TRAN", "--json")
 	output, err := cmd.CombinedOutput()
@@ -724,14 +786,14 @@ func detectUSBDevices() []string {
 	}
 	var devices []string
 	for _, dev := range result.Blockdevices {
-		if dev.Tran == "usb" {
+		if strings.ToLower(dev.Tran) == "usb" {
 			devices = append(devices, "/dev/"+dev.Name)
 		}
 	}
 	return devices
 }
 
-// getPortID получает идентификатор USB-порта для устройства: сначала через sysfs, затем через udevadm.
+// getPortID возвращает идентификатор USB-порта для устройства.
 func getPortID(device string) string {
 	id := getPortIDFromSysfs(device)
 	if id == "" {
