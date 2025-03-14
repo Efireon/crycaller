@@ -1,0 +1,8 @@
+{
+  "name": "default",
+  "scripts": {
+    "background_scripts": null,
+    "interactive_scripts": null
+  },
+  "vars": {}
+}

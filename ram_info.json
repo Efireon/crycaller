@@ -1,0 +1,21 @@
+{
+  "RAM": {
+    "count": 2,
+    "modules": [
+      {
+        "locator": "*",
+        "bank_locator": "*",
+        "manufacturer": "Samsung",
+        "volume": "8 GB",
+        "speed": "3200 MT/s"
+      },
+      {
+        "locator": "*",
+        "bank_locator": "*",
+        "manufacturer": "Samsung",
+        "volume": "8 GB",
+        "speed": "3200 MT/s"
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "video_ports": [
+    {
+      "name": "card1-eDP-1",
+      "test": true
+    }
+  ]
+}

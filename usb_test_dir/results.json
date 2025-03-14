@@ -1,0 +1,22 @@
+{
+  "port_id": "usb-0:2",
+  "device": "/dev/sda",
+  "vendor": "Kingston",
+  "model": "DataTraveler_2.0",
+  "speed": "",
+  "write_speed": 966.1380870444622,
+  "read_speed": 0,
+  "timestamp": "2025-01-31T09:17:16+03:00",
+  "connection_count": 0
+}
+{
+  "port_id": "usb-0:2",
+  "device": "/dev/sdb",
+  "vendor": "Kingston",
+  "model": "DataTraveler_3.0",
+  "speed": "",
+  "write_speed": 976.0197701003,
+  "read_speed": 0,
+  "timestamp": "2025-01-31T09:18:24+03:00",
+  "connection_count": 0
+}

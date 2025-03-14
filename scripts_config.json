@@ -1,0 +1,9 @@
+{
+  "background_scripts": {
+    "./acb_test.sh": ""
+  },
+  "sequential_scripts": {
+    "./disk_test": "-d 2",
+    "./cam_test": ""
+  }
+}

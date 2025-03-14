@@ -1,0 +1,42 @@
+{
+    "background_scripts": [
+        {
+            "path": "./acb_test.sh",
+            "args": "",
+            "type": "script",
+            "max_logs": 2
+        },
+        {
+            "path": "./RAM_test.sh",
+            "args": "-c ram_info.json",
+            "type": "script",
+            "max_logs": 2
+        },
+        {
+            "path": "./disk_test.sh",
+            "args": "-d 2",
+            "type": "script",
+            "max_logs": 2
+        },
+        {
+            "path": "./net_test.sh",
+            "args": "-c net_config.json",
+            "type": "script",
+            "max_logs": 2
+        }
+    ],
+    "interactive_scripts": [
+        {
+            "path": "./video_test.sh",
+            "args": "-c",
+            "type": "script",
+            "max_logs": 5
+        },
+        {
+            "path": "./cam_test",
+            "args": "-d -n",
+            "type": "binary",
+            "max_logs": 5
+        }
+    ]
+}

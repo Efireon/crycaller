@@ -1,0 +1,278 @@
+{
+  "results": [
+    {
+      "port": "/dev/disk/by-path/pci-0000:04:00.4-usb-0:2:1.0-scsi-0:0:0:0",
+      "device": "sda",
+      "volume": "14.51 GB",
+      "average_speed_MBps": 59.43,
+      "min_speed_MBps": 2,
+      "max_speed_MBps": 116.86
+    },
+    {
+      "port": "/dev/disk/by-path/pci-0000:04:00.4-usb-0:1:1.0-scsi-0:0:0:0",
+      "device": "sdb",
+      "volume": "14.65 GB",
+      "average_speed_MBps": 19.70,
+      "min_speed_MBps": 8,
+      "max_speed_MBps": 31.39
+    },
+    {
+      "port": "/dev/disk/by-path/pci-0000:04:00.4-usb-0:2:1.0-scsi-0:0:0:0",
+      "device": "sdc",
+      "volume": "119.24 GB",
+      "average_speed_MBps": 265.16,
+      "min_speed_MBps": 231,
+      "max_speed_MBps": 299.32
+    },
+    {
+      "port": "/dev/disk/by-path/pci-0000:04:00.4-usb-0:2:1.0-scsi-0:0:0:0",
+      "device": "sdc",
+      "volume": "119.24 GB",
+      "average_speed_MBps": 266.39,
+      "min_speed_MBps": 236,
+      "max_speed_MBps": 296.78
+    },
+    {
+      "port": "/dev/disk/by-path/pci-0000:04:00.4-usb-0:2:1.0-scsi-0:0:0:0",
+      "device": "",
+      "description": "disk",
+      "product": "Tech",
+      "vendor": "JMicron",
+      "configuration": "driver=uas speed=298330Mbit/s",
+      "timestamp": "2025-01-28 12:27:50",
+      "volume": "119.24 GB",
+      "average_speed_MBps": 264.66,
+      "min_speed_MBps": 231,
+      "max_speed_MBps": 298.33
+    },
+    {
+      "port": "/dev/disk/by-path/pci-0000:04:00.4-usb-0:2:1.0-scsi-0:0:0:0",
+      "device": "",
+      "description": "disk",
+      "product": "Tech",
+      "vendor": "JMicron",
+      "configuration": "driver=uas speed=296560Mbit/s",
+      "timestamp": "2025-01-28 12:28:40",
+      "volume": "119.24 GB",
+      "average_speed_MBps": 264.28,
+      "min_speed_MBps": 232,
+      "max_speed_MBps": 296.56
+    },
+    {
+      "port": "/dev/disk/by-path/pci-0000:04:00.4-usb-0:2:1.0-scsi-0:0:0:0",
+      "device": "",
+      "description": "disk",
+      "product": "Tech",
+      "vendor": "JMicron",
+      "configuration": "driver=uas speed=2504.80Mbit/s",
+      "timestamp": "2025-01-28 12:30:49",
+      "volume": "119.24 GB",
+      "average_speed_MBps": 275.55,
+      "min_speed_MBps": 238,
+      "max_speed_MBps": 313.1
+    },
+    {
+      "port": "/dev/disk/by-path/pci-0000:04:00.4-usb-0:2:1.0-scsi-0:0:0:0",
+      "device": "",
+      "description": "disk",
+      "product": "Tech",
+      "vendor": "JMicron",
+      "configuration": "driver=driver=uas maxpower=Unknown speed=Unknown speed=2518.72Mbit/s",
+      "timestamp": "2025-01-28 12:34:45",
+      "volume": "119.24 GB",
+      "write_speed_MBps": 236,
+      "read_speed_MBps": 314.84,
+      "average_speed_MBps": 275.42,
+      "min_write_speed_MBps": 236,
+      "min_read_speed_MBps": 314.84,
+      "max_write_speed_MBps": 236,
+      "max_read_speed_MBps": 314.84
+    },
+    {
+      "port": "/dev/disk/by-path/pci-0000:04:00.4-usb-0:2:1.0-scsi-0:0:0:0",
+      "device": "sdc",
+      "description": "disk",
+      "product": "Tech",
+      "vendor": "JMicron",
+      "configuration": "driver=Unknown maxpower=Unknown speed=2356.24Mbit/s",
+      "timestamp": "2025-01-28 12:42:20",
+      "volume": "119.24 GB",
+      "write_speed_MBps": 234,
+      "read_speed_MBps": 294.53,
+      "average_speed_MBps": 264.26,
+      "min_write_speed_MBps": 234,
+      "min_read_speed_MBps": 294.53,
+      "max_write_speed_MBps": 234,
+      "max_read_speed_MBps": 294.53
+    },
+    {
+      "port": "/dev/disk/by-path/pci-0000:04:00.4-usb-0:2:1.0-scsi-0:0:0:0",
+      "device": "sdc",
+      "description": "disk",
+      "product": "OnlyDisk",
+      "vendor": "Netac",
+      "configuration": "driver=Unknown maxpower=Unknown speed=249.12Mbit/s",
+      "timestamp": "2025-01-28 13:03:37",
+      "volume": "14.65 GB",
+      "write_speed_MBps": 9,
+      "read_speed_MBps": 31.14,
+      "average_speed_MBps": 20.07,
+      "min_write_speed_MBps": 9,
+      "min_read_speed_MBps": 9,
+      "max_write_speed_MBps": 31.14,
+      "max_read_speed_MBps": 31.14
+    },
+    {
+      "port": "/dev/disk/by-path/pci-0000:04:00.4-usb-0:2:1.0-scsi-0:0:0:0",
+      "device": "sdc",
+      "description": "disk",
+      "product": "Tech",
+      "vendor": "JMicron",
+      "configuration": "driver=Unknown maxpower=Unknown speed=2421.36Mbit/s",
+      "timestamp": "2025-01-28 13:06:25",
+      "volume": "119.24 GB",
+      "speed": {
+        "write_speed_MBps": 231,
+        "read_speed_MBps": 302.67,
+        "average_speed_MBps": 266.84,
+        "min_write_speed_MBps": 231,
+        "min_read_speed_MBps": 302.67,
+        "max_write_speed_MBps": 231,
+        "max_read_speed_MBps": 302.67
+      }
+    },
+    {
+      "port": "/dev/disk/by-path/pci-0000:04:00.4-usb-0:2:1.0-scsi-0:0:0:0",
+      "device": "sdc",
+      "description": "disk",
+      "product": "Tech",
+      "vendor": "JMicron",
+      "configuration": "driver=Unknown maxpower=Unknown speed=2503.60Mbit/s",
+      "timestamp": "2025-01-28 14:20:44",
+      "volume": "119.24 GB",
+      "speed": {
+        "write_speed_MBps": 268,
+        "read_speed_MBps": 312.95,
+        "average_speed_MBps": 290.48,
+        "min_write_speed_MBps": 268,
+        "min_read_speed_MBps": 312.95,
+        "max_write_speed_MBps": 268,
+        "max_read_speed_MBps": 312.95
+      }
+    },
+    {
+      "port": "/dev/disk/by-path/pci-0000:04:00.4-usb-0:2:1.0-scsi-0:0:0:0",
+      "device": "sdc",
+      "description": "disk",
+      "product": "Tech",
+      "vendor": "JMicron",
+      "configuration": "driver=Unknown maxpower=Unknown speed=2501.20Mbit/s",
+      "timestamp": "2025-01-28 14:26:23",
+      "volume": "119.24 GB",
+      "speed": {
+        "write_speed_MBps": 268,
+        "read_speed_MBps": 312.65,
+        "average_speed_MBps": 290.32,
+        "min_write_speed_MBps": 268,
+        "min_read_speed_MBps": 312.65,
+        "max_write_speed_MBps": 268,
+        "max_read_speed_MBps": 312.65
+      }
+    },
+    {
+      "port": "/dev/disk/by-path/pci-0000:04:00.4-usb-0:2:1.0-scsi-0:0:0:0",
+      "device": "sdc",
+      "description": "disk",
+      "product": "Tech",
+      "vendor": "JMicron",
+      "configuration": "driver=Unknown maxpower=Unknown speed=2570.72Mbit/s",
+      "timestamp": "2025-01-28 14:26:49",
+      "volume": "119.24 GB",
+      "speed": {
+        "write_speed_MBps": 267,
+        "read_speed_MBps": 321.34,
+        "average_speed_MBps": 294.17,
+        "min_write_speed_MBps": 267,
+        "min_read_speed_MBps": 321.34,
+        "max_write_speed_MBps": 267,
+        "max_read_speed_MBps": 321.34
+      }
+    },
+    {
+      "port": "/dev/disk/by-path/pci-0000:04:00.4-usb-0:2:1.0-scsi-0:0:0:0",
+      "device": "sdc",
+      "description": "disk",
+      "product": "OnlyDisk",
+      "vendor": "Netac",
+      "configuration": "driver=Unknown maxpower=Unknown speed=262.16Mbit/s",
+      "timestamp": "2025-01-28 14:34:09",
+      "volume": "14.65 GB",
+      "speed": {
+        "write_speed_MBps": 9,
+        "read_speed_MBps": 32.77,
+        "average_speed_MBps": 20.89,
+        "min_write_speed_MBps": 9,
+        "min_read_speed_MBps": 32.77,
+        "max_write_speed_MBps": 9,
+        "max_read_speed_MBps": 32.77
+      }
+    },
+    {
+      "port": "/dev/disk/by-path/pci-0000:04:00.4-usb-0:2:1.0-scsi-0:0:0:0",
+      "device": "sdc",
+      "description": "disk",
+      "product": "OnlyDisk",
+      "vendor": "Netac",
+      "configuration": "driver=Unknown maxpower=Unknown speed=261.60Mbit/s",
+      "timestamp": "2025-01-28 14:43:19",
+      "volume": "14.65 GB",
+      "speed": {
+        "write_speed_MBps": 9,
+        "read_speed_MBps": 32.70,
+        "average_speed_MBps": 20.85,
+        "min_write_speed_MBps": 9,
+        "min_read_speed_MBps": 32.70,
+        "max_write_speed_MBps": 9,
+        "max_read_speed_MBps": 32.70
+      }
+    },
+    {
+      "port": "/dev/disk/by-path/pci-0000:04:00.4-usb-0:2:1.0-scsi-0:0:0:0",
+      "device": "sdc",
+      "description": "disk",
+      "product": "Tech",
+      "vendor": "JMicron",
+      "configuration": "driver=Unknown maxpower=Unknown speed=2506.88Mbit/s",
+      "timestamp": "2025-01-28 14:44:48",
+      "volume": "119.24 GB",
+      "speed": {
+        "write_speed_MBps": 271,
+        "read_speed_MBps": 313.36,
+        "average_speed_MBps": 292.18,
+        "min_write_speed_MBps": 271,
+        "min_read_speed_MBps": 313.36,
+        "max_write_speed_MBps": 271,
+        "max_read_speed_MBps": 313.36
+      }
+    },
+    {
+      "port": "/dev/disk/by-path/pci-0000:04:00.4-usb-0:2:1.0-scsi-0:0:0:0",
+      "device": "sdc",
+      "description": "disk",
+      "product": "Tech",
+      "vendor": "JMicron",
+      "configuration": "driver=Unknown maxpower=Unknown speed=2485.36Mbit/s",
+      "timestamp": "2025-01-28 14:45:10",
+      "volume": "119.24 GB",
+      "speed": {
+        "write_speed_MBps": 270,
+        "read_speed_MBps": 310.67,
+        "average_speed_MBps": 290.34,
+        "min_write_speed_MBps": 270,
+        "min_read_speed_MBps": 310.67,
+        "max_write_speed_MBps": 270,
+        "max_read_speed_MBps": 310.67
+      }
+    }
+  ]
+}

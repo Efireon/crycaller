@@ -1,0 +1,12 @@
+{
+  "count": 1,
+  "interfaces": [
+    {
+      "Vendor": "*",
+      "Product": "QCNFA765 Wireless Network Adapter",
+      "Speed": "",
+      "Port": "*",
+      "Ping": "Success"
+    }
+  ]
+}

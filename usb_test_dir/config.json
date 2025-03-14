@@ -1,0 +1,9 @@
+{
+  "ports": [
+    {
+      "id": "Bus003Device004",
+      "name": "Netac Technology Co., Ltd OnlyDisk",
+      "active": false
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+2025/01/30 09:14:42 main.go:802: Starting program at 2025-01-30T09:14:42+03:00
+2025/01/30 09:14:42 main.go:816: Error loading profiles: open : no such file or directory
+2025/01/30 09:14:45 main.go:802: Starting program at 2025-01-30T09:14:45+03:00
+2025/01/30 09:14:45 main.go:816: Error loading profiles: open : no such file or directory
+2025/01/30 09:17:04 main.go:802: Starting program at 2025-01-30T09:17:04+03:00
+2025/01/30 09:17:04 main.go:816: Error loading profiles: open profiles: no such file or directory
+2025/01/30 09:17:21 main.go:802: Starting program at 2025-01-30T09:17:21+03:00
+2025/01/30 09:17:21 main.go:822: Active profile not found: default
+2025/01/30 09:17:59 main.go:802: Starting program at 2025-01-30T09:17:59+03:00
+2025/01/30 09:17:59 main.go:822: Active profile not found: default
+2025/01/30 09:19:23 main.go:802: Starting program at 2025-01-30T09:19:23+03:00
+2025/01/30 09:19:23 main.go:816: Error loading profiles: invalid character ':' after array element
+2025/01/30 09:20:28 main.go:802: Starting program at 2025-01-30T09:20:28+03:00
+2025/01/30 09:20:28 main.go:816: Error loading profiles: json: cannot unmarshal object into Go struct field Profile.scripts of type []main.ScriptConfig
+2025/01/30 09:33:23 main.go:794: Starting program at 2025-01-30T09:33:23+03:00
+2025/01/30 09:34:04 main.go:794: Starting program at 2025-01-30T09:34:04+03:00
+2025/01/30 09:51:38 main.go:781: Starting program at 2025-01-30T09:51:38+03:00
+2025/01/30 09:51:51 main.go:781: Starting program at 2025-01-30T09:51:51+03:00
+2025/01/30 10:17:48 main.go:812: Starting program at 2025-01-30T10:17:48+03:00
+2025/01/30 10:17:54 main.go:812: Starting program at 2025-01-30T10:17:54+03:00
+2025/01/30 13:02:33 main.go:836: Starting program at 2025-01-30T13:02:33+03:00
+2025/01/30 13:17:05 main.go:836: Starting program at 2025-01-30T13:17:05+03:00
+2025/01/30 13:17:08 main.go:836: Starting program at 2025-01-30T13:17:08+03:00
+2025/01/30 15:02:54 main.go:836: Starting program at 2025-01-30T15:02:54+03:00
+2025/01/30 15:20:16 main.go:836: Starting program at 2025-01-30T15:20:16+03:00
+2025/01/30 15:25:26 main.go:836: Starting program at 2025-01-30T15:25:26+03:00
+2025/01/30 15:40:41 main.go:836: Starting program at 2025-01-30T15:40:41+03:00
+2025/01/30 15:40:44 main.go:836: Starting program at 2025-01-30T15:40:44+03:00
+2025/01/31 14:31:24 main.go:915: Starting program at 2025-01-31T14:31:24+03:00
+2025/01/31 14:31:26 main.go:915: Starting program at 2025-01-31T14:31:26+03:00
+2025/01/31 14:45:36 main.go:910: Starting program at 2025-01-31T14:45:36+03:00
+2025/01/31 14:45:58 main.go:910: Starting program at 2025-01-31T14:45:58+03:00
+2025/01/31 14:46:00 main.go:910: Starting program at 2025-01-31T14:46:00+03:00
+2025/01/31 14:47:06 main.go:910: Starting program at 2025-01-31T14:47:06+03:00
+2025/01/31 15:33:00 main.go:914: Starting program at 2025-01-31T15:33:00+03:00
+2025/01/31 15:54:46 main.go:1172: Starting program at 2025-01-31T15:54:46+03:00
+2025/01/31 15:55:15 main.go:1172: Starting program at 2025-01-31T15:55:15+03:00
+2025/01/31 15:55:18 main.go:1172: Starting program at 2025-01-31T15:55:18+03:00
+2025/01/31 16:19:28 main.go:1279: Starting program at 2025-01-31T16:19:28+03:00
+2025/01/31 16:21:25 main.go:1279: Starting program at 2025-01-31T16:21:25+03:00
+2025/01/31 16:24:10 main.go:1341: Starting program at 2025-01-31T16:24:10+03:00
+2025/01/31 16:25:21 main.go:1341: Starting program at 2025-01-31T16:25:21+03:00
+2025/01/31 16:25:53 main.go:1341: Starting program at 2025-01-31T16:25:53+03:00
+2025/01/31 16:32:01 main.go:1365: Starting program at 2025-01-31T16:32:01+03:00
+2025/01/31 16:47:34 main.go:1384: Starting program at 2025-01-31T16:47:34+03:00
+2025/01/31 16:50:12 main.go:1384: Starting program at 2025-01-31T16:50:12+03:00
